@@ -12,6 +12,10 @@ export default {
         "2xl": "1400px",
       },
     },
+    fontFamily: {
+      sans: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+      arabic: ['Amiri', 'serif'],
+    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
