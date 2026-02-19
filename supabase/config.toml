@@ -2,3 +2,6 @@ project_id = "cacrzekqhzirwsqsykig"
 
 [functions.explain-ayah]
 verify_jwt = false
+
+[functions.generate-reflection]
+verify_jwt = false
