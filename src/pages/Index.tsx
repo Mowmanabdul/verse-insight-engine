@@ -1,15 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TranslatedAyah, useSurahVerses } from "@/hooks/useQuranData";
 import { useSavedInsights } from "@/hooks/useSavedInsights";
 import SurahList from "@/components/SurahList";
 import VerseDisplay from "@/components/VerseDisplay";
-import AiPanel from "@/components/AiPanel";
 import ProgressHeader from "@/components/ProgressHeader";
-import ReflectionPanel from "@/components/ReflectionPanel";
-import SavedInsightsPanel from "@/components/SavedInsightsPanel";
-import { Menu, X, BookOpen, Bookmark } from "lucide-react";
-
-type RightTab = "insights" | "reflection" | "saved";
+import RightPanelContent, { RightTab } from "@/components/RightPanelContent";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Menu, X, Sparkles, Bookmark } from "lucide-react";
 
 const Index = () => {
   const [selectedSurah, setSelectedSurah] = useState(1);
@@ -18,6 +15,7 @@ const Index = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [rightTab, setRightTab] = useState<RightTab>("insights");
   const [showRightPanel, setShowRightPanel] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
   const { verses } = useSurahVerses(selectedSurah);
   const { insights, saveInsight, deleteInsight, isInsightSaved } = useSavedInsights();
@@ -34,42 +32,49 @@ const Index = () => {
     if (!isDeselect) {
       setRightTab("insights");
       setShowRightPanel(true);
+      setMobileSheetOpen(true);
     }
   };
+
+  // Close mobile sheet when ayah deselected
+  useEffect(() => {
+    if (!selectedAyah && rightTab === "insights") {
+      setMobileSheetOpen(false);
+    }
+  }, [selectedAyah]);
 
   const handleSaveAyahInsight = (content: string) => {
     if (!selectedAyah) return;
     saveInsight({
-      type: "ayah",
-      surahName,
-      surahNumber: selectedSurah,
-      ayahNumber: selectedAyah.numberInSurah,
-      arabicText: selectedAyah.text,
-      translation: selectedAyah.translation,
-      content,
+      type: "ayah", surahName, surahNumber: selectedSurah,
+      ayahNumber: selectedAyah.numberInSurah, arabicText: selectedAyah.text,
+      translation: selectedAyah.translation, content,
     });
   };
 
   const handleSaveReflection = (content: string) => {
-    saveInsight({
-      type: "reflection",
-      surahName,
-      surahNumber: selectedSurah,
-      content,
-    });
+    saveInsight({ type: "reflection", surahName, surahNumber: selectedSurah, content });
   };
-
-  const rightTabs: { value: RightTab; label: string; icon: React.ReactNode }[] = [
-    { value: "insights", label: "Insights", icon: null },
-    { value: "reflection", label: "Reflect", icon: <BookOpen className="w-3 h-3" /> },
-    { value: "saved", label: "Saved", icon: <Bookmark className="w-3 h-3" /> },
-  ];
 
   const isCurrentAyahSaved = selectedAyah
     ? isInsightSaved("ayah", selectedSurah, selectedAyah.numberInSurah)
     : false;
 
   const showRight = showRightPanel || selectedAyah;
+
+  const handleCloseAyah = () => {
+    setSelectedAyah(null);
+    setShowRightPanel(false);
+    setMobileSheetOpen(false);
+  };
+
+  const panelProps = {
+    rightTab, onTabChange: (tab: RightTab) => setRightTab(tab),
+    selectedAyah, surahName, surahNumber: selectedSurah, verses,
+    insights, onCloseAyah: handleCloseAyah, onSaveAyahInsight: handleSaveAyahInsight,
+    onSaveReflection: handleSaveReflection, onDeleteInsight: deleteInsight,
+    isCurrentAyahSaved,
+  };
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -88,13 +93,28 @@ const Index = () => {
           {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
-        {/* Mobile right panel toggle */}
-        <button
-          onClick={() => { setShowRightPanel(!showRightPanel); if (!showRightPanel) setRightTab("saved"); }}
-          className="md:hidden fixed bottom-4 right-4 z-50 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg"
-        >
-          <Bookmark className="w-5 h-5" />
-        </button>
+        {/* Mobile right panel FABs */}
+        <div className="md:hidden fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+          <button
+            onClick={() => { setRightTab("saved"); setMobileSheetOpen(true); }}
+            className="w-11 h-11 rounded-full bg-secondary text-foreground flex items-center justify-center shadow-lg border border-border"
+          >
+            <Bookmark className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => { setRightTab("insights"); setMobileSheetOpen(true); }}
+            className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg"
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Mobile slide-up sheet */}
+        <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+          <SheetContent side="bottom" className="md:hidden h-[85vh] rounded-t-2xl p-0 bg-card border-border">
+            <RightPanelContent {...panelProps} />
+          </SheetContent>
+        </Sheet>
 
         {/* Surah sidebar */}
         <div
@@ -103,7 +123,6 @@ const Index = () => {
           <SurahList selectedSurah={selectedSurah} onSelectSurah={handleSurahSelect} />
         </div>
 
-        {/* Overlay for mobile sidebar */}
         {showSidebar && (
           <div
             className="lg:hidden fixed inset-0 z-30 bg-background/60 backdrop-blur-sm"
@@ -120,59 +139,10 @@ const Index = () => {
           />
         </div>
 
-        {/* Right panel */}
+        {/* Desktop right panel */}
         <div className={`${showRight ? "w-80 xl:w-96" : "w-0"} hidden md:block transition-all overflow-hidden`}>
-          <div className="h-full flex flex-col border-l border-border bg-card">
-            {/* Tab bar */}
-            <div className="flex border-b border-border">
-              {rightTabs.map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => { setRightTab(tab.value); setShowRightPanel(true); }}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium transition-colors ${
-                    rightTab === tab.value
-                      ? "text-primary border-b-2 border-primary"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                  {tab.value === "saved" && insights.length > 0 && (
-                    <span className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center">
-                      {insights.length}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab content */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin">
-              {rightTab === "insights" && (
-                <AiPanel
-                  ayah={selectedAyah}
-                  surahName={surahName}
-                  onClose={() => { setSelectedAyah(null); setShowRightPanel(false); }}
-                  onSave={handleSaveAyahInsight}
-                  isSaved={isCurrentAyahSaved}
-                />
-              )}
-              {rightTab === "reflection" && (
-                <div className="p-4">
-                  <ReflectionPanel
-                    surahName={surahName}
-                    surahNumber={selectedSurah}
-                    verses={verses}
-                    onSave={handleSaveReflection}
-                  />
-                </div>
-              )}
-              {rightTab === "saved" && (
-                <div className="p-3">
-                  <SavedInsightsPanel insights={insights} onDelete={deleteInsight} />
-                </div>
-              )}
-            </div>
+          <div className="h-full border-l border-border bg-card">
+            <RightPanelContent {...panelProps} />
           </div>
         </div>
       </div>
