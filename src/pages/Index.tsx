@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { TranslatedAyah, useSurahVerses } from "@/hooks/useQuranData";
-import { useSavedInsights } from "@/hooks/useSavedInsights";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useDbInsights } from "@/hooks/useDbInsights";
+import { useReadingSessions } from "@/hooks/useReadingSessions";
 import SurahList from "@/components/SurahList";
 import VerseDisplay from "@/components/VerseDisplay";
 import ProgressHeader from "@/components/ProgressHeader";
@@ -17,31 +20,66 @@ const Index = () => {
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
+  // Track ayahs read in this session
+  const [readAyahs, setReadAyahs] = useState<Set<number>>(new Set());
+  const sessionStartRef = useRef(Date.now());
+
+  const { user, signOut } = useAuth();
+  const { profile, updateStreak } = useProfile(user?.id);
+  const { insights, saveInsight, deleteInsight, isInsightSaved } = useDbInsights(user?.id);
+  const { logSession } = useReadingSessions(user?.id);
+
   const { verses } = useSurahVerses(selectedSurah);
-  const { insights, saveInsight, deleteInsight, isInsightSaved } = useSavedInsights();
 
   const handleSurahSelect = (num: number) => {
+    // Log previous session before switching
+    if (readAyahs.size > 0) {
+      const duration = Math.round((Date.now() - sessionStartRef.current) / 1000);
+      logSession(selectedSurah, surahName, Array.from(readAyahs), duration);
+    }
     setSelectedSurah(num);
     setSelectedAyah(null);
     setShowSidebar(false);
+    setReadAyahs(new Set());
+    sessionStartRef.current = Date.now();
   };
 
   const handleAyahClick = (ayah: TranslatedAyah) => {
     const isDeselect = selectedAyah?.number === ayah.number;
     setSelectedAyah(isDeselect ? null : ayah);
+
+    // Track this ayah as read and update streak
     if (!isDeselect) {
+      setReadAyahs((prev) => new Set(prev).add(ayah.numberInSurah));
+      updateStreak();
       setRightTab("insights");
       setShowRightPanel(true);
       setMobileSheetOpen(true);
     }
   };
 
-  // Close mobile sheet when ayah deselected
+  // Update surah name when verses load
+  useEffect(() => {
+    if (verses.length > 0) {
+      // surahName is managed via SurahList callback in original, keep simple
+    }
+  }, [verses]);
+
   useEffect(() => {
     if (!selectedAyah && rightTab === "insights") {
       setMobileSheetOpen(false);
     }
   }, [selectedAyah]);
+
+  // Log session on unmount
+  useEffect(() => {
+    return () => {
+      if (readAyahs.size > 0) {
+        const duration = Math.round((Date.now() - sessionStartRef.current) / 1000);
+        logSession(selectedSurah, surahName, Array.from(readAyahs), duration);
+      }
+    };
+  }, []);
 
   const handleSaveAyahInsight = (content: string) => {
     if (!selectedAyah) return;
@@ -68,10 +106,23 @@ const Index = () => {
     setMobileSheetOpen(false);
   };
 
+  // Adapt DbInsight to SavedInsight shape for panel
+  const adaptedInsights = insights.map((i) => ({
+    id: i.id,
+    type: i.type as "ayah" | "reflection",
+    surahName: i.surah_name,
+    surahNumber: i.surah_number,
+    ayahNumber: i.ayah_number ?? undefined,
+    arabicText: i.arabic_text ?? undefined,
+    translation: i.translation ?? undefined,
+    content: i.content,
+    savedAt: i.created_at,
+  }));
+
   const panelProps = {
     rightTab, onTabChange: (tab: RightTab) => setRightTab(tab),
     selectedAyah, surahName, surahNumber: selectedSurah, verses,
-    insights, onCloseAyah: handleCloseAyah, onSaveAyahInsight: handleSaveAyahInsight,
+    insights: adaptedInsights, onCloseAyah: handleCloseAyah, onSaveAyahInsight: handleSaveAyahInsight,
     onSaveReflection: handleSaveReflection, onDeleteInsight: deleteInsight,
     isCurrentAyahSaved,
   };
@@ -82,6 +133,11 @@ const Index = () => {
         currentSurah={surahName}
         totalSurahs={114}
         currentSurahNumber={selectedSurah}
+        streak={profile?.current_streak ?? 0}
+        dailyGoal={profile?.daily_reading_goal ?? 10}
+        ayahsReadToday={readAyahs.size}
+        userEmail={user?.email}
+        onSignOut={signOut}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
