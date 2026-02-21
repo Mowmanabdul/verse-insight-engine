@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 interface SurahListProps {
   selectedSurah: number;
-  onSelectSurah: (num: number) => void;
+  onSelectSurah: (num: number, name: string) => void;
 }
 
 const SurahList = ({ selectedSurah, onSelectSurah }: SurahListProps) => {
@@ -49,7 +49,7 @@ const SurahList = ({ selectedSurah, onSelectSurah }: SurahListProps) => {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: Math.min(i * 0.02, 0.5) }}
-                onClick={() => onSelectSurah(surah.number)}
+                onClick={() => onSelectSurah(surah.number, surah.englishName)}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors ${
                   selectedSurah === surah.number
                     ? "bg-primary/15 text-primary"

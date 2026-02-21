@@ -31,13 +31,14 @@ const Index = () => {
 
   const { verses } = useSurahVerses(selectedSurah);
 
-  const handleSurahSelect = (num: number) => {
+  const handleSurahSelect = (num: number, name: string) => {
     // Log previous session before switching
     if (readAyahs.size > 0) {
       const duration = Math.round((Date.now() - sessionStartRef.current) / 1000);
       logSession(selectedSurah, surahName, Array.from(readAyahs), duration);
     }
     setSelectedSurah(num);
+    setSurahName(name);
     setSelectedAyah(null);
     setShowSidebar(false);
     setReadAyahs(new Set());
