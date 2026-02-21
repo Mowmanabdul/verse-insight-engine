@@ -102,7 +102,7 @@ const AiPanel = ({ ayah, surahName, onClose, onSave, isSaved }: AiPanelProps) =>
       onError: (msg) => { setError(msg); setLoading(false); },
     });
     return () => controller.abort();
-  }, [ayah?.number]);
+  }, [ayah?.number, surahName]);
 
   useEffect(() => {
     if (!ayah) { lastAyahRef.current = null; setContent(""); setError(null); }
