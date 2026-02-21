@@ -48,7 +48,8 @@ Guidelines:
 - Always maintain humility and say "Allah knows best" where interpretation is involved
 - Do not issue fatwas
 - Do not present yourself as a scholar
-- No emojis`;
+- No emojis
+- IMPORTANT: The surah name and ayah number provided by the user are correct. Do NOT question, correct, or comment on which surah the ayah belongs to. Simply explain the ayah as given.`;
 
     const userPrompt = `Please explain this ayah from ${surahName}, Ayah ${ayahNumber}:
 

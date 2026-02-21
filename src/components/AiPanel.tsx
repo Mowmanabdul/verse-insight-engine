@@ -83,12 +83,15 @@ const AiPanel = ({ ayah, surahName, onClose, onSave, isSaved }: AiPanelProps) =>
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const lastAyahRef = useRef<number | null>(null);
+  
   const contentRef = useRef("");
 
+  const fetchKey = ayah ? `${surahName}-${ayah.number}` : null;
+  const lastFetchKeyRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (!ayah || ayah.number === lastAyahRef.current) return;
-    lastAyahRef.current = ayah.number;
+    if (!ayah || !fetchKey || fetchKey === lastFetchKeyRef.current) return;
+    lastFetchKeyRef.current = fetchKey;
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -102,10 +105,10 @@ const AiPanel = ({ ayah, surahName, onClose, onSave, isSaved }: AiPanelProps) =>
       onError: (msg) => { setError(msg); setLoading(false); },
     });
     return () => controller.abort();
-  }, [ayah?.number, surahName]);
+  }, [fetchKey]);
 
   useEffect(() => {
-    if (!ayah) { lastAyahRef.current = null; setContent(""); setError(null); }
+    if (!ayah) { lastFetchKeyRef.current = null; setContent(""); setError(null); }
   }, [ayah]);
 
   const handleSave = () => {
@@ -117,7 +120,7 @@ const AiPanel = ({ ayah, surahName, onClose, onSave, isSaved }: AiPanelProps) =>
 
   const retry = () => {
     if (!ayah) return;
-    lastAyahRef.current = null;
+    lastFetchKeyRef.current = null;
     setContent(""); setError(null); setLoading(true);
     contentRef.current = "";
     const controller = new AbortController();
