@@ -1,4 +1,5 @@
-import { BookOpen, Flame, LogOut, Target } from "lucide-react";
+import { BookOpen, Flame, LogOut, Target, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface ProgressHeaderProps {
   currentSurah: string;
@@ -52,6 +53,15 @@ const ProgressHeader = ({
           <Flame className="w-3.5 h-3.5 text-primary" />
           <span className="text-xs font-medium text-foreground">{streak} day{streak !== 1 ? "s" : ""}</span>
         </div>
+
+        {/* Dashboard link */}
+        <Link
+          to="/dashboard"
+          className="p-1.5 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+          title="Reading Dashboard"
+        >
+          <BarChart3 className="w-4 h-4" />
+        </Link>
 
         {/* Sign out */}
         {onSignOut && (
