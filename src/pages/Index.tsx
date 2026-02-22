@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useDbInsights } from "@/hooks/useDbInsights";
 import { useReadingSessions } from "@/hooks/useReadingSessions";
+import { useLastRead } from "@/hooks/useLastRead";
 import SurahList from "@/components/SurahList";
 import VerseDisplay from "@/components/VerseDisplay";
 import ProgressHeader from "@/components/ProgressHeader";
@@ -12,27 +13,29 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Menu, X, Sparkles, Bookmark } from "lucide-react";
 
 const Index = () => {
-  const [selectedSurah, setSelectedSurah] = useState(1);
+  const { user, signOut } = useAuth();
+  const { profile, updateStreak } = useProfile(user?.id);
+  const { insights, saveInsight, deleteInsight, isInsightSaved } = useDbInsights(user?.id);
+  const { logSession } = useReadingSessions(user?.id);
+  const { saveLastRead, getLastRead } = useLastRead(user?.id);
+
+  // Restore last read position
+  const lastRead = getLastRead();
+  const [selectedSurah, setSelectedSurah] = useState(lastRead?.surahNumber ?? 1);
+  const [surahName, setSurahName] = useState(lastRead?.surahName ?? "Al-Faatiha");
+
   const [selectedAyah, setSelectedAyah] = useState<TranslatedAyah | null>(null);
-  const [surahName, setSurahName] = useState("Al-Faatiha");
   const [showSidebar, setShowSidebar] = useState(false);
   const [rightTab, setRightTab] = useState<RightTab>("insights");
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
 
-  // Track ayahs read in this session
   const [readAyahs, setReadAyahs] = useState<Set<number>>(new Set());
   const sessionStartRef = useRef(Date.now());
-
-  const { user, signOut } = useAuth();
-  const { profile, updateStreak } = useProfile(user?.id);
-  const { insights, saveInsight, deleteInsight, isInsightSaved } = useDbInsights(user?.id);
-  const { logSession } = useReadingSessions(user?.id);
 
   const { verses } = useSurahVerses(selectedSurah);
 
   const handleSurahSelect = (num: number, name: string) => {
-    // Log previous session before switching
     if (readAyahs.size > 0) {
       const duration = Math.round((Date.now() - sessionStartRef.current) / 1000);
       logSession(selectedSurah, surahName, Array.from(readAyahs), duration);
@@ -43,13 +46,13 @@ const Index = () => {
     setShowSidebar(false);
     setReadAyahs(new Set());
     sessionStartRef.current = Date.now();
+    saveLastRead(num, name);
   };
 
   const handleAyahClick = (ayah: TranslatedAyah) => {
     const isDeselect = selectedAyah?.number === ayah.number;
     setSelectedAyah(isDeselect ? null : ayah);
 
-    // Track this ayah as read and update streak
     if (!isDeselect) {
       setReadAyahs((prev) => new Set(prev).add(ayah.numberInSurah));
       updateStreak();
@@ -58,13 +61,6 @@ const Index = () => {
       setMobileSheetOpen(true);
     }
   };
-
-  // Update surah name when verses load
-  useEffect(() => {
-    if (verses.length > 0) {
-      // surahName is managed via SurahList callback in original, keep simple
-    }
-  }, [verses]);
 
   useEffect(() => {
     if (!selectedAyah && rightTab === "insights") {
@@ -107,7 +103,6 @@ const Index = () => {
     setMobileSheetOpen(false);
   };
 
-  // Adapt DbInsight to SavedInsight shape for panel
   const adaptedInsights = insights.map((i) => ({
     id: i.id,
     type: i.type as "ayah" | "reflection",
@@ -138,6 +133,7 @@ const Index = () => {
         dailyGoal={profile?.daily_reading_goal ?? 10}
         ayahsReadToday={readAyahs.size}
         userEmail={user?.email}
+        displayName={profile?.display_name ?? undefined}
         onSignOut={signOut}
       />
 
@@ -145,7 +141,7 @@ const Index = () => {
         {/* Mobile menu button */}
         <button
           onClick={() => setShowSidebar(!showSidebar)}
-          className="lg:hidden fixed bottom-4 left-4 z-50 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg"
+          className="lg:hidden fixed bottom-4 left-4 z-50 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20"
         >
           {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -160,7 +156,7 @@ const Index = () => {
           </button>
           <button
             onClick={() => { setRightTab("insights"); setMobileSheetOpen(true); }}
-            className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg"
+            className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20"
           >
             <Sparkles className="w-4 h-4" />
           </button>
