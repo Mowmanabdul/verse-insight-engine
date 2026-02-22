@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSurahVerses, TranslatedAyah } from "@/hooks/useQuranData";
 import { motion } from "framer-motion";
 
@@ -13,10 +13,27 @@ interface VerseDisplayProps {
 const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayProps) => {
   const { verses, loading, surahInfo } = useSurahVerses(surahNumber);
   const [displayMode, setDisplayMode] = useState<DisplayMode>("both");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top when surah changes
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [surahNumber]);
+
+  // Keyboard: Escape to deselect
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedAyah) {
+        onAyahClick({ numberInSurah: selectedAyah } as TranslatedAyah); // trigger deselect
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selectedAyah, onAyahClick]);
 
   const modes: { value: DisplayMode; label: string }[] = [
     { value: "both", label: "Both" },
-    { value: "arabic", label: "Arabic" },
+    { value: "arabic", label: "عربي" },
     { value: "english", label: "English" },
   ];
 
@@ -41,9 +58,16 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayPr
             <p className="text-sm text-muted-foreground mt-1">
               {surahInfo.englishName} — {surahInfo.englishNameTranslation}
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {surahInfo.revelationType} · {surahInfo.numberOfAyahs} Ayahs
-            </p>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <span className={`px-2 py-0.5 rounded text-[11px] font-medium ${
+                surahInfo.revelationType === "Meccan"
+                  ? "bg-primary/10 text-primary/70"
+                  : "bg-accent/30 text-accent-foreground/70"
+              }`}>
+                {surahInfo.revelationType}
+              </span>
+              <span className="text-xs text-muted-foreground">{surahInfo.numberOfAyahs} Ayahs</span>
+            </div>
           </motion.div>
         )}
 
@@ -53,9 +77,9 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayPr
             <button
               key={m.value}
               onClick={() => setDisplayMode(m.value)}
-              className={`px-3 py-1 text-xs rounded-md transition-colors ${
+              className={`px-3 py-1.5 text-xs rounded-md transition-all ${
                 displayMode === m.value
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
                   : "bg-secondary text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -67,28 +91,32 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayPr
 
       {/* Bismillah */}
       {surahNumber !== 1 && surahNumber !== 9 && (
-        <div className="text-center py-6 text-arabic text-primary/70">
+        <div className="text-center py-6 text-arabic text-primary/70 border-b border-border/30">
           بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
         </div>
       )}
 
       {/* Verses */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin px-4 pb-8">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-4 pb-8">
         {verses.map((ayah, i) => (
           <motion.div
             key={ayah.number}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: Math.min(i * 0.03, 1) }}
+            transition={{ delay: Math.min(i * 0.02, 0.8) }}
             onClick={() => onAyahClick(ayah)}
-            className={`group cursor-pointer px-4 py-4 rounded-lg mb-2 transition-all ${
+            className={`group cursor-pointer px-4 py-4 rounded-lg mb-1 transition-all ${
               selectedAyah === ayah.numberInSurah
-                ? "bg-primary/10 ring-1 ring-primary/20"
-                : "hover:bg-secondary/60"
+                ? "bg-primary/10 ring-1 ring-primary/30 shadow-sm shadow-primary/5"
+                : "hover:bg-secondary/50"
             }`}
           >
             <div className="flex items-start gap-3">
-              <span className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full bg-secondary text-[10px] text-muted-foreground font-medium mt-1">
+              <span className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-medium mt-1 transition-colors ${
+                selectedAyah === ayah.numberInSurah
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
+              }`}>
                 {ayah.numberInSurah}
               </span>
               <div className="flex-1 space-y-3">

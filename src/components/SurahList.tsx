@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { useSurahList, Surah } from "@/hooks/useQuranData";
+import { useSurahList } from "@/hooks/useQuranData";
 import { motion } from "framer-motion";
 
 interface SurahListProps {
@@ -21,7 +21,7 @@ const SurahList = ({ selectedSurah, onSelectSurah }: SurahListProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b border-border">
+      <div className="p-3 border-b border-border">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
@@ -29,7 +29,7 @@ const SurahList = ({ selectedSurah, onSelectSurah }: SurahListProps) => {
             placeholder="Search surahs..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 bg-secondary text-foreground rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50"
+            className="w-full pl-9 pr-3 py-2 bg-secondary text-foreground rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 transition-shadow"
           />
         </div>
       </div>
@@ -41,6 +41,10 @@ const SurahList = ({ selectedSurah, onSelectSurah }: SurahListProps) => {
               <div key={i} className="h-14 bg-secondary/50 rounded-lg animate-pulse" />
             ))}
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-6 text-center">
+            <p className="text-sm text-muted-foreground">No surahs found</p>
+          </div>
         ) : (
           <div className="p-2">
             {filtered.map((surah, i) => (
@@ -48,25 +52,34 @@ const SurahList = ({ selectedSurah, onSelectSurah }: SurahListProps) => {
                 key={surah.number}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: Math.min(i * 0.02, 0.5) }}
+                transition={{ delay: Math.min(i * 0.015, 0.4) }}
                 onClick={() => onSelectSurah(surah.number, surah.englishName)}
-                className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
                   selectedSurah === surah.number
-                    ? "bg-primary/15 text-primary"
+                    ? "bg-primary/15 text-primary ring-1 ring-primary/20"
                     : "hover:bg-secondary text-foreground"
                 }`}
               >
-                <span className="w-8 h-8 flex items-center justify-center rounded-md bg-secondary text-xs font-medium text-muted-foreground">
+                <span className={`w-8 h-8 flex items-center justify-center rounded-md text-xs font-medium ${
+                  selectedSurah === surah.number
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-muted-foreground"
+                }`}>
                   {surah.number}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-medium truncate">{surah.englishName}</span>
-                    <span className="font-arabic text-base text-primary/80">{surah.name}</span>
+                    <span className="font-arabic text-base text-primary/80 shrink-0">{surah.name}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{surah.englishNameTranslation}</span>
-                    <span>·</span>
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                      surah.revelationType === "Meccan"
+                        ? "bg-primary/10 text-primary/70"
+                        : "bg-accent/30 text-accent-foreground/70"
+                    }`}>
+                      {surah.revelationType}
+                    </span>
                     <span>{surah.numberOfAyahs} ayahs</span>
                   </div>
                 </div>
