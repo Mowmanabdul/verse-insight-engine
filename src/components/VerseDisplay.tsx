@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useSurahVerses, TranslatedAyah } from "@/hooks/useQuranData";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { useAudioPlayer, PlayMode } from "@/hooks/useAudioPlayer";
 import { motion } from "framer-motion";
-import { Play, Pause, Loader2 } from "lucide-react";
+import { Play, Pause, Loader2, Volume2, Square } from "lucide-react";
 
 type DisplayMode = "both" | "arabic" | "english";
 
@@ -14,33 +14,70 @@ interface VerseDisplayProps {
 
 const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayProps) => {
   const { verses, loading, surahInfo } = useSurahVerses(surahNumber);
-  const { playingAyah, isLoading: audioLoading, play, stop } = useAudioPlayer();
+  const {
+    playingAyah, isLoading: audioLoading, playMode, setPlayMode,
+    isPlayingSurah, play, playSurah, stop, setSurahRange,
+  } = useAudioPlayer();
   const [displayMode, setDisplayMode] = useState<DisplayMode>("both");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const verseRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
-  // Scroll to top when surah changes
+  // Set surah range when verses load
+  useEffect(() => {
+    if (verses.length > 0) {
+      setSurahRange(verses[0].number, verses[verses.length - 1].number);
+    }
+  }, [verses, setSurahRange]);
+
   // Stop audio & scroll to top when surah changes
   useEffect(() => {
     stop();
     scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [surahNumber]);
 
+  // Auto-scroll to currently playing ayah
+  useEffect(() => {
+    if (!playingAyah || !scrollRef.current) return;
+    const el = verseRefs.current.get(playingAyah);
+    if (el) {
+      const container = scrollRef.current;
+      const elTop = el.offsetTop - container.offsetTop;
+      const scrollTarget = elTop - container.clientHeight / 4;
+      container.scrollTo({ top: scrollTarget, behavior: "smooth" });
+    }
+  }, [playingAyah]);
+
   // Keyboard: Escape to deselect
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selectedAyah) {
-        onAyahClick({ numberInSurah: selectedAyah } as TranslatedAyah); // trigger deselect
+        onAyahClick({ numberInSurah: selectedAyah } as TranslatedAyah);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [selectedAyah, onAyahClick]);
 
-  const modes: { value: DisplayMode; label: string }[] = [
+  const setVerseRef = useCallback((globalNumber: number, el: HTMLDivElement | null) => {
+    if (el) verseRefs.current.set(globalNumber, el);
+    else verseRefs.current.delete(globalNumber);
+  }, []);
+
+  const displayModes: { value: DisplayMode; label: string }[] = [
     { value: "both", label: "Both" },
     { value: "arabic", label: "عربي" },
     { value: "english", label: "English" },
   ];
+
+  const playModes: { value: PlayMode; label: string }[] = [
+    { value: "ayah", label: "Per Ayah" },
+    { value: "surah", label: "Full Surah" },
+  ];
+
+  const handlePlaySurah = () => {
+    if (verses.length === 0) return;
+    playSurah(verses[0].number, verses[verses.length - 1].number);
+  };
 
   if (loading) {
     return (
@@ -76,21 +113,65 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayPr
           </motion.div>
         )}
 
-        {/* Display mode toggle */}
-        <div className="flex items-center justify-center gap-1 mt-4">
-          {modes.map((m) => (
+        {/* Controls row */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+          {/* Display mode toggle */}
+          <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-0.5">
+            {displayModes.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => setDisplayMode(m.value)}
+                className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+                  displayMode === m.value
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Play mode toggle */}
+          <div className="flex items-center gap-1 bg-secondary/50 rounded-lg p-0.5">
+            {playModes.map((m) => (
+              <button
+                key={m.value}
+                onClick={() => { setPlayMode(m.value); if (isPlayingSurah) stop(); }}
+                className={`px-3 py-1.5 text-xs rounded-md transition-all ${
+                  playMode === m.value
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Full surah play button (only in surah mode) */}
+          {playMode === "surah" && (
             <button
-              key={m.value}
-              onClick={() => setDisplayMode(m.value)}
-              className={`px-3 py-1.5 text-xs rounded-md transition-all ${
-                displayMode === m.value
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-secondary text-muted-foreground hover:text-foreground"
+              onClick={handlePlaySurah}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all ${
+                isPlayingSurah
+                  ? "bg-destructive text-destructive-foreground shadow-sm"
+                  : "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
               }`}
             >
-              {m.label}
+              {isPlayingSurah ? (
+                <>
+                  <Square className="w-3 h-3" />
+                  Stop
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-3 h-3" />
+                  Play Surah
+                </>
+              )}
             </button>
-          ))}
+          )}
         </div>
       </div>
 
@@ -103,59 +184,82 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayPr
 
       {/* Verses */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-4 pb-8">
-        {verses.map((ayah, i) => (
-          <motion.div
-            key={ayah.number}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: Math.min(i * 0.02, 0.8) }}
-            onClick={() => onAyahClick(ayah)}
-            className={`group cursor-pointer px-4 py-4 rounded-lg mb-1 transition-all ${
-              selectedAyah === ayah.numberInSurah
-                ? "bg-primary/10 ring-1 ring-primary/30 shadow-sm shadow-primary/5"
-                : "hover:bg-secondary/50"
-            }`}
-          >
-            <div className="flex items-start gap-3">
-              <div className="shrink-0 flex flex-col items-center gap-1.5 mt-1">
-                <span className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-medium transition-colors ${
-                  selectedAyah === ayah.numberInSurah
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-secondary text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
-                }`}>
-                  {ayah.numberInSurah}
-                </span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); play(ayah.number); }}
-                  className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${
-                    playingAyah === ayah.number
-                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                      : "bg-secondary/70 text-muted-foreground hover:bg-primary/20 hover:text-primary"
-                  }`}
-                  aria-label={playingAyah === ayah.number ? "Pause recitation" : "Play recitation"}
-                >
-                  {playingAyah === ayah.number && audioLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : playingAyah === ayah.number ? (
-                    <Pause className="w-3.5 h-3.5" />
-                  ) : (
-                    <Play className="w-3.5 h-3.5 ml-0.5" />
+        {verses.map((ayah, i) => {
+          const isPlaying = playingAyah === ayah.number;
+          const isSelected = selectedAyah === ayah.numberInSurah;
+
+          return (
+            <motion.div
+              key={ayah.number}
+              ref={(el) => setVerseRef(ayah.number, el)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: Math.min(i * 0.02, 0.8) }}
+              onClick={() => onAyahClick(ayah)}
+              className={`group cursor-pointer px-4 py-4 rounded-lg mb-1 transition-all ${
+                isPlaying
+                  ? "bg-primary/15 ring-1 ring-primary/40 shadow-sm shadow-primary/10"
+                  : isSelected
+                    ? "bg-primary/10 ring-1 ring-primary/30 shadow-sm shadow-primary/5"
+                    : "hover:bg-secondary/50"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 flex flex-col items-center gap-1.5 mt-1">
+                  <span className={`w-7 h-7 flex items-center justify-center rounded-full text-[10px] font-medium transition-colors ${
+                    isPlaying
+                      ? "bg-primary text-primary-foreground animate-pulse"
+                      : isSelected
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
+                  }`}>
+                    {ayah.numberInSurah}
+                  </span>
+                  {/* Per-ayah play button (only in ayah mode) */}
+                  {playMode === "ayah" && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); play(ayah.number); }}
+                      className={`w-7 h-7 flex items-center justify-center rounded-full transition-all ${
+                        isPlaying
+                          ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                          : "bg-secondary/70 text-muted-foreground hover:bg-primary/20 hover:text-primary"
+                      }`}
+                      aria-label={isPlaying ? "Pause recitation" : "Play recitation"}
+                    >
+                      {isPlaying && audioLoading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : isPlaying ? (
+                        <Pause className="w-3.5 h-3.5" />
+                      ) : (
+                        <Play className="w-3.5 h-3.5 ml-0.5" />
+                      )}
+                    </button>
                   )}
-                </button>
+                  {/* Playing indicator in surah mode */}
+                  {playMode === "surah" && isPlaying && (
+                    <div className="w-7 h-7 flex items-center justify-center">
+                      <Volume2 className="w-3.5 h-3.5 text-primary animate-pulse" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-3">
+                  {(displayMode === "both" || displayMode === "arabic") && (
+                    <p className={`text-arabic leading-loose transition-colors ${
+                      isPlaying ? "text-primary" : "text-foreground"
+                    }`}>{ayah.text}</p>
+                  )}
+                  {(displayMode === "both" || displayMode === "english") && (
+                    <p className={`text-sm leading-relaxed transition-colors ${
+                      isPlaying ? "text-foreground" : "text-muted-foreground"
+                    }`}>
+                      {ayah.translation}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div className="flex-1 space-y-3">
-                {(displayMode === "both" || displayMode === "arabic") && (
-                  <p className="text-arabic text-foreground leading-loose">{ayah.text}</p>
-                )}
-                {(displayMode === "both" || displayMode === "english") && (
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {ayah.translation}
-                  </p>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
