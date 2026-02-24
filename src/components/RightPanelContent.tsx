@@ -3,9 +3,10 @@ import { SavedInsight } from "@/hooks/useSavedInsights";
 import AiPanel from "@/components/AiPanel";
 import ReflectionPanel from "@/components/ReflectionPanel";
 import SavedInsightsPanel from "@/components/SavedInsightsPanel";
-import { BookOpen, Bookmark } from "lucide-react";
+import MemorizationPanel from "@/components/MemorizationPanel";
+import { BookOpen, Bookmark, Brain } from "lucide-react";
 
-export type RightTab = "insights" | "reflection" | "saved";
+export type RightTab = "insights" | "reflection" | "memorize" | "saved";
 
 interface RightPanelContentProps {
   rightTab: RightTab;
@@ -25,6 +26,7 @@ interface RightPanelContentProps {
 const tabs: { value: RightTab; label: string; icon: React.ReactNode }[] = [
   { value: "insights", label: "Insights", icon: null },
   { value: "reflection", label: "Reflect", icon: <BookOpen className="w-3 h-3" /> },
+  { value: "memorize", label: "Memorize", icon: <Brain className="w-3 h-3" /> },
   { value: "saved", label: "Saved", icon: <Bookmark className="w-3 h-3" /> },
 ];
 
@@ -76,6 +78,9 @@ const RightPanelContent = ({
             onSave={onSaveReflection}
           />
         </div>
+      )}
+      {rightTab === "memorize" && (
+        <MemorizationPanel verses={verses} surahName={surahName} />
       )}
       {rightTab === "saved" && (
         <div className="p-3">
