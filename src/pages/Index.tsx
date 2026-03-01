@@ -138,37 +138,6 @@ const Index = () => {
       />
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Mobile menu button */}
-        <button
-          onClick={() => setShowSidebar(!showSidebar)}
-          className="lg:hidden fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25"
-        >
-          {showSidebar ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-        </button>
-
-        {/* Mobile right panel FABs */}
-        <div className="md:hidden fixed bottom-4 right-4 z-50 flex flex-col gap-1.5">
-          <button
-            onClick={() => { setRightTab("saved"); setMobileSheetOpen(true); }}
-            className="w-10 h-10 rounded-full bg-secondary text-foreground flex items-center justify-center shadow-lg border border-border"
-          >
-            <Bookmark className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => { setRightTab("insights"); setMobileSheetOpen(true); }}
-            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        {/* Mobile slide-up sheet */}
-        <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
-          <SheetContent side="bottom" className="md:hidden h-[85vh] rounded-t-2xl p-0 bg-card border-border">
-            <RightPanelContent {...panelProps} />
-          </SheetContent>
-        </Sheet>
-
         {/* Surah sidebar */}
         <div
           className={`${showSidebar ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-72 bg-card border-r border-border transition-transform lg:transition-none`}
@@ -183,8 +152,8 @@ const Index = () => {
           />
         )}
 
-        {/* Verse display */}
-        <div className="flex-1 flex flex-col min-w-0">
+        {/* Verse display — add bottom padding on mobile for nav bar */}
+        <div className="flex-1 flex flex-col min-w-0 pb-12 md:pb-0">
           <VerseDisplay
             surahNumber={selectedSurah}
             onAyahClick={handleAyahClick}
@@ -192,12 +161,44 @@ const Index = () => {
           />
         </div>
 
+        {/* Mobile slide-up sheet */}
+        <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
+          <SheetContent side="bottom" className="md:hidden h-[85vh] rounded-t-2xl p-0 bg-card border-border">
+            <RightPanelContent {...panelProps} />
+          </SheetContent>
+        </Sheet>
+
         {/* Desktop right panel */}
         <div className={`${showRight ? "w-80 xl:w-96" : "w-0"} hidden md:block transition-all overflow-hidden`}>
           <div className="h-full border-l border-border bg-card">
             <RightPanelContent {...panelProps} />
           </div>
         </div>
+      </div>
+
+      {/* Mobile bottom nav bar — static, no overlay */}
+      <div className="md:hidden flex items-center justify-around border-t border-border bg-card/95 backdrop-blur-sm px-2 py-1.5 shrink-0">
+        <button
+          onClick={() => setShowSidebar(!showSidebar)}
+          className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-colors ${showSidebar ? "text-primary" : "text-muted-foreground"}`}
+        >
+          {showSidebar ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          <span className="text-[9px] font-medium">Surahs</span>
+        </button>
+        <button
+          onClick={() => { setRightTab("insights"); setMobileSheetOpen(true); }}
+          className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span className="text-[9px] font-medium">Insights</span>
+        </button>
+        <button
+          onClick={() => { setRightTab("saved"); setMobileSheetOpen(true); }}
+          className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg text-muted-foreground hover:text-primary transition-colors"
+        >
+          <Bookmark className="w-4 h-4" />
+          <span className="text-[9px] font-medium">Saved</span>
+        </button>
       </div>
     </div>
   );
