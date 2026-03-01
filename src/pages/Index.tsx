@@ -141,24 +141,24 @@ const Index = () => {
         {/* Mobile menu button */}
         <button
           onClick={() => setShowSidebar(!showSidebar)}
-          className="lg:hidden fixed bottom-4 left-4 z-50 w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20"
+          className="lg:hidden fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25"
         >
-          {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {showSidebar ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </button>
 
         {/* Mobile right panel FABs */}
-        <div className="md:hidden fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+        <div className="md:hidden fixed bottom-4 right-4 z-50 flex flex-col gap-1.5">
           <button
             onClick={() => { setRightTab("saved"); setMobileSheetOpen(true); }}
-            className="w-11 h-11 rounded-full bg-secondary text-foreground flex items-center justify-center shadow-lg border border-border"
+            className="w-10 h-10 rounded-full bg-secondary text-foreground flex items-center justify-center shadow-lg border border-border"
           >
-            <Bookmark className="w-4 h-4" />
+            <Bookmark className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => { setRightTab("insights"); setMobileSheetOpen(true); }}
-            className="w-11 h-11 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20"
+            className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/25"
           >
-            <Sparkles className="w-4 h-4" />
+            <Sparkles className="w-3.5 h-3.5" />
           </button>
         </div>
 

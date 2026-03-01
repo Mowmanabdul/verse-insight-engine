@@ -41,7 +41,7 @@ const RightPanelContent = ({
         <button
           key={tab.value}
           onClick={() => onTabChange(tab.value)}
-          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-2 text-[11px] font-medium transition-colors ${
             rightTab === tab.value
               ? "text-primary border-b-2 border-primary"
               : "text-muted-foreground hover:text-foreground"
@@ -50,7 +50,7 @@ const RightPanelContent = ({
           {tab.icon}
           {tab.label}
           {tab.value === "saved" && insights.length > 0 && (
-            <span className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center">
+            <span className="w-3.5 h-3.5 rounded-full bg-primary/20 text-primary text-[9px] flex items-center justify-center">
               {insights.length}
             </span>
           )}
