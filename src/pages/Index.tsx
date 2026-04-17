@@ -3,6 +3,7 @@ import { TranslatedAyah, useSurahVerses } from "@/hooks/useQuranData";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useDbInsights } from "@/hooks/useDbInsights";
+import { usePersonalNotes } from "@/hooks/usePersonalNotes";
 import { useReadingSessions } from "@/hooks/useReadingSessions";
 import { useLastRead } from "@/hooks/useLastRead";
 import SurahList from "@/components/SurahList";
@@ -16,6 +17,7 @@ const Index = () => {
   const { user, signOut } = useAuth();
   const { profile, updateStreak } = useProfile(user?.id);
   const { insights, saveInsight, deleteInsight, isInsightSaved } = useDbInsights(user?.id);
+  const { notes, upsertNote, deleteNote, getNoteForAyah } = usePersonalNotes(user?.id);
   const { logSession } = useReadingSessions(user?.id);
   const { saveLastRead, getLastRead } = useLastRead(user?.id);
 
@@ -115,11 +117,35 @@ const Index = () => {
     savedAt: i.created_at,
   }));
 
+  const currentNote = selectedAyah
+    ? getNoteForAyah(selectedSurah, selectedAyah.numberInSurah)
+    : undefined;
+
+  const handleSaveNote = async (params: {
+    ayahNumber: number;
+    arabicText: string;
+    translation: string;
+    content: string;
+    existingId?: string;
+  }) => {
+    await upsertNote({
+      surahNumber: selectedSurah,
+      surahName,
+      ayahNumber: params.ayahNumber,
+      arabicText: params.arabicText,
+      translation: params.translation,
+      content: params.content,
+      existingId: params.existingId,
+    });
+  };
+
   const panelProps = {
     rightTab, onTabChange: (tab: RightTab) => setRightTab(tab),
     selectedAyah, surahName, surahNumber: selectedSurah, verses,
-    insights: adaptedInsights, onCloseAyah: handleCloseAyah, onSaveAyahInsight: handleSaveAyahInsight,
+    insights: adaptedInsights, notes, currentNote,
+    onCloseAyah: handleCloseAyah, onSaveAyahInsight: handleSaveAyahInsight,
     onSaveReflection: handleSaveReflection, onDeleteInsight: deleteInsight,
+    onSaveNote: handleSaveNote, onDeleteNote: deleteNote,
     isCurrentAyahSaved,
   };
 
