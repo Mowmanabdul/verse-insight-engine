@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      personal_notes: {
+        Row: {
+          arabic_text: string | null
+          ayah_number: number
+          content: string
+          created_at: string
+          id: string
+          surah_name: string
+          surah_number: number
+          translation: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          arabic_text?: string | null
+          ayah_number: number
+          content: string
+          created_at?: string
+          id?: string
+          surah_name: string
+          surah_number: number
+          translation?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          arabic_text?: string | null
+          ayah_number?: number
+          content?: string
+          created_at?: string
+          id?: string
+          surah_name?: string
+          surah_number?: number
+          translation?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
