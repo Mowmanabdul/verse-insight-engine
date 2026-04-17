@@ -1,5 +1,6 @@
-import { BookOpen, Flame, LogOut, Target, BarChart3, Settings } from "lucide-react";
+import { BookOpen, Flame, LogOut, Target, BarChart3, Settings, Moon, Sun } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useTheme } from "@/hooks/useTheme";
 
 interface ProgressHeaderProps {
   currentSurah: string;
@@ -18,6 +19,7 @@ const ProgressHeader = ({
   streak = 0, dailyGoal = 10, ayahsReadToday = 0,
   userEmail, displayName, onSignOut,
 }: ProgressHeaderProps) => {
+  const { theme, toggleTheme } = useTheme();
   const progress = Math.round((currentSurahNumber / totalSurahs) * 100);
   const goalProgress = Math.min(100, Math.round((ayahsReadToday / dailyGoal) * 100));
 
@@ -56,6 +58,14 @@ const ProgressHeader = ({
           <span className="text-[11px] font-medium text-foreground tabular-nums">{streak}</span>
         </div>
 
+        <button
+          onClick={toggleTheme}
+          className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+        </button>
         <Link to="/dashboard" className="p-1 rounded-md hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors" title="Dashboard">
           <BarChart3 className="w-3.5 h-3.5" />
         </Link>
