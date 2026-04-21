@@ -10,9 +10,10 @@ interface VerseDisplayProps {
   surahNumber: number;
   onAyahClick: (ayah: TranslatedAyah) => void;
   selectedAyah: number | null;
+  notedAyahs?: Set<number>;
 }
 
-const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayProps) => {
+const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah, notedAyahs }: VerseDisplayProps) => {
   const { verses, loading, surahInfo } = useSurahVerses(surahNumber);
   const {
     playingAyah, isLoading: audioLoading, playMode, setPlayMode,
@@ -173,6 +174,7 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayPr
         {verses.map((ayah, i) => {
           const isPlaying = playingAyah === ayah.number;
           const isSelected = selectedAyah === ayah.numberInSurah;
+          const hasNote = notedAyahs?.has(ayah.numberInSurah) ?? false;
 
           return (
             <motion.div
@@ -192,15 +194,24 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayPr
             >
               <div className="flex items-start gap-2.5">
                 <div className="shrink-0 flex flex-col items-center gap-1 pt-0.5">
-                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[9px] font-semibold transition-colors ${
-                    isPlaying
-                      ? "bg-primary text-primary-foreground"
-                      : isSelected
+                  <div className="relative">
+                    <span className={`w-6 h-6 flex items-center justify-center rounded-full text-[9px] font-semibold transition-colors ${
+                      isPlaying
                         ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
-                  }`}>
-                    {ayah.numberInSurah}
-                  </span>
+                        : isSelected
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-secondary text-muted-foreground group-hover:bg-primary/20 group-hover:text-primary"
+                    }`}>
+                      {ayah.numberInSurah}
+                    </span>
+                    {hasNote && (
+                      <span
+                        className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-primary ring-2 ring-background"
+                        title="You have a personal note on this ayah"
+                        aria-label="Has personal note"
+                      />
+                    )}
+                  </div>
                   {playMode === "ayah" && (
                     <button
                       onClick={(e) => { e.stopPropagation(); play(ayah.number); }}
