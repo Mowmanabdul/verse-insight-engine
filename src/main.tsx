@@ -14,4 +14,15 @@ import "./index.css";
   }
 })();
 
+// Apply Arabic font-size preference synchronously
+(() => {
+  try {
+    const stored = localStorage.getItem("qc-arabic-size");
+    const n = stored ? parseFloat(stored) : NaN;
+    if (Number.isFinite(n) && n >= 1.25 && n <= 2.75) {
+      document.documentElement.style.setProperty("--arabic-size", `${n}rem`);
+    }
+  } catch {}
+})();
+
 createRoot(document.getElementById("root")!).render(<App />);
