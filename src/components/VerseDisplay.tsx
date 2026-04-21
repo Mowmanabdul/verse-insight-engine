@@ -174,6 +174,7 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah, notedAyahs }: Ve
         {verses.map((ayah, i) => {
           const isPlaying = playingAyah === ayah.number;
           const isSelected = selectedAyah === ayah.numberInSurah;
+          const hasNote = notedAyahs?.has(ayah.numberInSurah) ?? false;
 
           return (
             <motion.div
