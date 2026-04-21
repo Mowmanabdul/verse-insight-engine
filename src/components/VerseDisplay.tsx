@@ -10,9 +10,10 @@ interface VerseDisplayProps {
   surahNumber: number;
   onAyahClick: (ayah: TranslatedAyah) => void;
   selectedAyah: number | null;
+  notedAyahs?: Set<number>;
 }
 
-const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah }: VerseDisplayProps) => {
+const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah, notedAyahs }: VerseDisplayProps) => {
   const { verses, loading, surahInfo } = useSurahVerses(surahNumber);
   const {
     playingAyah, isLoading: audioLoading, playMode, setPlayMode,
