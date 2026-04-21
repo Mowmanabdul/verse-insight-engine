@@ -184,6 +184,7 @@ const Index = () => {
             surahNumber={selectedSurah}
             onAyahClick={handleAyahClick}
             selectedAyah={selectedAyah?.numberInSurah ?? null}
+            notedAyahs={new Set(notes.filter(n => n.surah_number === selectedSurah).map(n => n.ayah_number))}
           />
         </div>
 
