@@ -172,11 +172,45 @@ const Index = () => {
       />
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Surah sidebar */}
+        {/* Surah sidebar — collapsible on desktop, drawer on mobile */}
         <div
-          className={`${showSidebar ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-72 bg-card border-r border-border transition-transform lg:transition-none`}
+          className={`${showSidebar ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 bg-card border-r border-border transition-[transform,width] duration-200 ease-out ${
+            sidebarCollapsed ? "lg:w-12" : "lg:w-72"
+          } w-72`}
         >
-          <SurahList selectedSurah={selectedSurah} onSelectSurah={handleSurahSelect} />
+          {sidebarCollapsed ? (
+            <div className="hidden lg:flex flex-col items-center pt-2 gap-2">
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                title="Expand surah list"
+                aria-label="Expand surah list"
+              >
+                <PanelLeftOpen className="w-4 h-4" />
+              </button>
+              <div className="mt-1 writing-vertical text-[10px] text-muted-foreground tracking-wider uppercase select-none"
+                   style={{ writingMode: "vertical-rl" }}>
+                {surahName}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col h-full">
+              <div className="hidden lg:flex items-center justify-between px-3 py-2 border-b border-border">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Surahs
+                </span>
+                <button
+                  onClick={() => setSidebarCollapsed(true)}
+                  className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                  title="Collapse surah list"
+                  aria-label="Collapse surah list"
+                >
+                  <PanelLeftClose className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <SurahList selectedSurah={selectedSurah} onSelectSurah={handleSurahSelect} />
+            </div>
+          )}
         </div>
 
         {showSidebar && (
