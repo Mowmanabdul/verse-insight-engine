@@ -59,7 +59,7 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah, notedAyahs }: Ve
     return () => window.removeEventListener("keydown", handler);
   }, [selectedAyah, onAyahClick]);
 
-  const setVerseRef = useCallback((globalNumber: number, el: HTMLDivElement | null) => {
+  const setVerseRef = useCallback((globalNumber: number, el: HTMLElement | null) => {
     if (el) verseRefs.current.set(globalNumber, el);
     else verseRefs.current.delete(globalNumber);
   }, []);
