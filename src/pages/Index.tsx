@@ -28,9 +28,17 @@ const Index = () => {
 
   const [selectedAyah, setSelectedAyah] = useState<TranslatedAyah | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("qc:sidebar-collapsed") === "1";
+  });
   const [rightTab, setRightTab] = useState<RightTab>("insights");
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem("qc:sidebar-collapsed", sidebarCollapsed ? "1" : "0");
+  }, [sidebarCollapsed]);
 
   const [readAyahs, setReadAyahs] = useState<Set<number>>(new Set());
   const sessionStartRef = useRef(Date.now());
