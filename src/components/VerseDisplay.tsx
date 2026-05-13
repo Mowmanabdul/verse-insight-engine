@@ -21,7 +21,7 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah, notedAyahs }: Ve
   } = useAudioPlayer();
   const [displayMode, setDisplayMode] = useState<DisplayMode>("both");
   const scrollRef = useRef<HTMLDivElement>(null);
-  const verseRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const verseRefs = useRef<Map<number, HTMLElement>>(new Map());
 
   // Set surah range when verses load
   useEffect(() => {
