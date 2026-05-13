@@ -3,6 +3,7 @@ import { useSurahVerses, TranslatedAyah } from "@/hooks/useQuranData";
 import { useAudioPlayer, PlayMode } from "@/hooks/useAudioPlayer";
 import { motion } from "framer-motion";
 import { Play, Pause, Loader2, Volume2, Square } from "lucide-react";
+import VerseMarkdown from "@/components/VerseMarkdown";
 
 type DisplayMode = "both" | "arabic" | "english";
 
@@ -254,15 +255,12 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah, notedAyahs }: Ve
                   </p>
                 )}
 
-                {/* Translation — editorial serif */}
+                {/* Translation — editorial serif, markdown-aware */}
                 {(displayMode === "both" || displayMode === "english") && (
-                  <p
-                    className={`verse-translation mt-4 transition-colors ${
-                      isHighlighted ? "text-foreground" : ""
-                    }`}
-                  >
-                    {ayah.translation}
-                  </p>
+                  <VerseMarkdown
+                    content={ayah.translation}
+                    className={`mt-4 transition-colors ${isHighlighted ? "text-foreground" : ""}`}
+                  />
                 )}
 
                 {/* Subtle ornamental divider between verses */}
