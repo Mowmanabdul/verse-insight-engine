@@ -11,7 +11,7 @@ import VerseDisplay from "@/components/VerseDisplay";
 import ProgressHeader from "@/components/ProgressHeader";
 import RightPanelContent, { RightTab } from "@/components/RightPanelContent";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Menu, X, Sparkles, Bookmark } from "lucide-react";
+import { Menu, X, Sparkles, Bookmark, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 const Index = () => {
   const { user, signOut } = useAuth();
