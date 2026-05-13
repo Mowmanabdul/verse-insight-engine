@@ -3,6 +3,7 @@ import { useSurahVerses, TranslatedAyah } from "@/hooks/useQuranData";
 import { useAudioPlayer, PlayMode } from "@/hooks/useAudioPlayer";
 import { motion } from "framer-motion";
 import { Play, Pause, Loader2, Volume2, Square } from "lucide-react";
+import VerseMarkdown from "@/components/VerseMarkdown";
 
 type DisplayMode = "both" | "arabic" | "english";
 
