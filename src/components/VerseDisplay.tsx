@@ -254,15 +254,12 @@ const VerseDisplay = ({ surahNumber, onAyahClick, selectedAyah, notedAyahs }: Ve
                   </p>
                 )}
 
-                {/* Translation — editorial serif */}
+                {/* Translation — editorial serif, markdown-aware */}
                 {(displayMode === "both" || displayMode === "english") && (
-                  <p
-                    className={`verse-translation mt-4 transition-colors ${
-                      isHighlighted ? "text-foreground" : ""
-                    }`}
-                  >
-                    {ayah.translation}
-                  </p>
+                  <VerseMarkdown
+                    content={ayah.translation}
+                    className={`mt-4 transition-colors ${isHighlighted ? "text-foreground" : ""}`}
+                  />
                 )}
 
                 {/* Subtle ornamental divider between verses */}
