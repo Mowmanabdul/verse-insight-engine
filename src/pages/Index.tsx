@@ -76,6 +76,7 @@ const Index = () => {
       updateStreak();
       setRightTab("insights");
       setShowRightPanel(true);
+      setRightCollapsed(false);
       setMobileSheetOpen(true);
     }
   };
