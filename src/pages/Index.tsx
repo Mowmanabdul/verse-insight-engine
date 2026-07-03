@@ -11,7 +11,7 @@ import VerseDisplay from "@/components/VerseDisplay";
 import ProgressHeader from "@/components/ProgressHeader";
 import RightPanelContent, { RightTab } from "@/components/RightPanelContent";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Menu, X, Sparkles, Bookmark, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu, X, Sparkles, Bookmark, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from "lucide-react";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -35,10 +35,18 @@ const Index = () => {
   const [rightTab, setRightTab] = useState<RightTab>("insights");
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("qc:right-collapsed") === "1";
+  });
 
   useEffect(() => {
     localStorage.setItem("qc:sidebar-collapsed", sidebarCollapsed ? "1" : "0");
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem("qc:right-collapsed", rightCollapsed ? "1" : "0");
+  }, [rightCollapsed]);
 
   const [readAyahs, setReadAyahs] = useState<Set<number>>(new Set());
   const sessionStartRef = useRef(Date.now());
@@ -68,6 +76,7 @@ const Index = () => {
       updateStreak();
       setRightTab("insights");
       setShowRightPanel(true);
+      setRightCollapsed(false);
       setMobileSheetOpen(true);
     }
   };
@@ -238,9 +247,59 @@ const Index = () => {
         </Sheet>
 
         {/* Desktop right panel */}
-        <div className={`${showRight ? "w-80 xl:w-96" : "w-0"} hidden md:block transition-all overflow-hidden`}>
-          <div className="h-full border-l border-border bg-card">
-            <RightPanelContent {...panelProps} />
+        <div
+          className={`hidden md:block transition-[width] duration-200 ease-out overflow-hidden ${
+            showRight ? (rightCollapsed ? "w-10" : "w-80 xl:w-96") : "w-0"
+          }`}
+        >
+          <div className="h-full border-l border-border bg-card relative">
+            {rightCollapsed ? (
+              <div className="flex flex-col items-center pt-2 gap-2 h-full">
+                <button
+                  onClick={() => setRightCollapsed(false)}
+                  className="p-2 rounded-md hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                  title="Expand companion panel"
+                  aria-label="Expand companion panel"
+                >
+                  <PanelRightOpen className="w-4 h-4" />
+                </button>
+                <div
+                  className="mt-1 text-[10px] text-muted-foreground tracking-wider uppercase select-none"
+                  style={{ writingMode: "vertical-rl" }}
+                >
+                  Companion
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Companion
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setRightCollapsed(true)}
+                      className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                      title="Collapse companion panel"
+                      aria-label="Collapse companion panel"
+                    >
+                      <PanelRightClose className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={handleCloseAyah}
+                      className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-primary transition-colors"
+                      title="Close panel"
+                      aria-label="Close panel"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <RightPanelContent {...panelProps} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
