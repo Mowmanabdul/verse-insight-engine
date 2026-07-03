@@ -35,10 +35,18 @@ const Index = () => {
   const [rightTab, setRightTab] = useState<RightTab>("insights");
   const [showRightPanel, setShowRightPanel] = useState(false);
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
+  const [rightCollapsed, setRightCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("qc:right-collapsed") === "1";
+  });
 
   useEffect(() => {
     localStorage.setItem("qc:sidebar-collapsed", sidebarCollapsed ? "1" : "0");
   }, [sidebarCollapsed]);
+
+  useEffect(() => {
+    localStorage.setItem("qc:right-collapsed", rightCollapsed ? "1" : "0");
+  }, [rightCollapsed]);
 
   const [readAyahs, setReadAyahs] = useState<Set<number>>(new Set());
   const sessionStartRef = useRef(Date.now());
